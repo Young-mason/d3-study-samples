@@ -22,53 +22,63 @@ const xAxisGroup = graph
   .attr("transform", `translate(0, ${graphHeight})`);
 const yAxisGroup = graph.append("g");
 
-d3.json("menu.json").then((data) => {
-  const y = d3
-    .scaleLinear()
-    .domain([0, d3.max(data, (d) => d.orders)])
-    .range([graphHeight, 0]);
+// console.log(db);
 
-  const x = d3
-    .scaleBand()
-    .domain(data.map((d) => d.name))
-    .range([0, graphWidth])
-    .paddingInner(0.2)
-    .paddingOuter(0.2);
+db.collection("dishes")
+  .get()
+  .then((res) => {
+    const data = [];
 
-  // join the data to circs
-  const rects = graph.selectAll("rect").data(data);
+    res.docs.forEach((doc) => {
+      data.push(doc.data());
+    });
 
-  // add attrs to circs already in the DOM
-  rects
-    .attr("width", x.bandwidth)
-    .attr("height", (d) => graphHeight - y(d.orders))
-    .attr("fill", "orange")
-    .attr("x", (d) => x(d.name))
-    .attr("y", (d) => y(d.orders));
+    const y = d3
+      .scaleLinear()
+      .domain([0, d3.max(data, (d) => d.orders)])
+      .range([graphHeight, 0]);
 
-  // append the enter selection to the DOM
-  rects
-    .enter()
-    .append("rect")
-    .attr("width", x.bandwidth)
-    .attr("height", (d) => graphHeight - y(d.orders))
-    .attr("fill", "orange")
-    .attr("x", (d) => x(d.name))
-    .attr("y", (d) => y(d.orders));
+    const x = d3
+      .scaleBand()
+      .domain(data.map((d) => d.name))
+      .range([0, graphWidth])
+      .paddingInner(0.2)
+      .paddingOuter(0.2);
 
-  // create & call axesit
-  const xAxis = d3.axisBottom(x);
-  const yAxis = d3
-    .axisLeft(y)
-    .ticks(3)
-    .tickFormat((d) => `${d} orders`);
+    // join the data to circs
+    const rects = graph.selectAll("rect").data(data);
 
-  xAxisGroup.call(xAxis);
-  yAxisGroup.call(yAxis);
+    // add attrs to circs already in the DOM
+    rects
+      .attr("width", x.bandwidth)
+      .attr("height", (d) => graphHeight - y(d.orders))
+      .attr("fill", "orange")
+      .attr("x", (d) => x(d.name))
+      .attr("y", (d) => y(d.orders));
 
-  xAxisGroup
-    .selectAll("text")
-    .attr("fill", "orange")
-    .attr("transform", "rotate(-40)")
-    .attr("text-anchor", "end");
-});
+    // append the enter selection to the DOM
+    rects
+      .enter()
+      .append("rect")
+      .attr("width", x.bandwidth)
+      .attr("height", (d) => graphHeight - y(d.orders))
+      .attr("fill", "orange")
+      .attr("x", (d) => x(d.name))
+      .attr("y", (d) => y(d.orders));
+
+    // create & call axesit
+    const xAxis = d3.axisBottom(x);
+    const yAxis = d3
+      .axisLeft(y)
+      .ticks(3)
+      .tickFormat((d) => `${d} orders`);
+
+    xAxisGroup.call(xAxis);
+    yAxisGroup.call(yAxis);
+
+    xAxisGroup
+      .selectAll("text")
+      .attr("fill", "orange")
+      .attr("transform", "rotate(-40)")
+      .attr("text-anchor", "end");
+  });
